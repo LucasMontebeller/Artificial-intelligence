@@ -36,29 +36,42 @@ class VacuumCleaner:
             cont+=1 
 
         return self.score / self.time_steps
+    
+    def reflex_vacuum_iterate(self, iterations):
+        result = cont = 0
+        while cont < iterations:
+            result += self.reflex_vacuum_agent()
+            self.reset()
+            cont+=1
+
+        return result / iterations
+
 
 # estados iniciais
-cleaner_right_dirty = VacuumCleaner(1000, Locations.RIGHT, States.DIRTY)
-cleaner_right_clean = VacuumCleaner(1000, Locations.RIGHT, States.CLEAN)
-cleaner_left_dirty = VacuumCleaner(1000, Locations.LEFT, States.DIRTY)
-cleaner_left_clean = VacuumCleaner(1000, Locations.LEFT, States.CLEAN)
+def main():
 
-cont = 0
-results = [0, 0, 0, 0]
-while cont < 1e6:
-    results[0] += cleaner_right_dirty.reflex_vacuum_agent()
-    results[1] += cleaner_right_clean.reflex_vacuum_agent()
-    results[2] += cleaner_left_dirty.reflex_vacuum_agent()
-    results[3] += cleaner_left_clean.reflex_vacuum_agent()
+    TIME_STEPS = int(1e3)
 
-    cleaner_right_dirty.reset()
-    cleaner_right_clean.reset()
-    cleaner_left_dirty.reset()
-    cleaner_left_clean.reset()
-    cont+=1
+    # da para melhorar a lógica em um dicionário de estados
+    cleaner_right_dirty = VacuumCleaner(TIME_STEPS, Locations.RIGHT, States.DIRTY)
+    cleaner_right_clean = VacuumCleaner(TIME_STEPS, Locations.RIGHT, States.CLEAN)
+    cleaner_left_dirty = VacuumCleaner(TIME_STEPS, Locations.LEFT, States.DIRTY)
+    cleaner_left_clean = VacuumCleaner(TIME_STEPS, Locations.LEFT, States.CLEAN)
 
-print(f"""
-        cleaner_right_dirty => {results[0]/1e6} 
-        cleaner_right_clean => {results[1]/1e6}
-        cleaner_left_dirty => {results[2]/1e6}
-        cleaner_left_clean => {results[3]/1e6}""")
+    results = [
+        cleaner_right_dirty.reflex_vacuum_iterate(TIME_STEPS), 
+        cleaner_right_clean.reflex_vacuum_iterate(TIME_STEPS),
+        cleaner_left_dirty.reflex_vacuum_iterate(TIME_STEPS),
+        cleaner_left_clean.reflex_vacuum_iterate(TIME_STEPS)
+    ]
+
+    print(f""" Resultados para {TIME_STEPS} iterações:
+        cleaner_right_dirty => {results[0]} 
+        cleaner_right_clean => {results[1]}
+        cleaner_left_dirty => {results[2]}
+        cleaner_left_clean => {results[3]}""")
+    
+
+if __name__ == "__main__":
+    main()
+    
