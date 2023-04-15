@@ -5,7 +5,8 @@ def main():
     # definições do agente
     TIME_STEPS = int(1e3)
     # AGENT_TYPE = AgentType.SIMPLE
-    AGENT_TYPE = AgentType.RANDOM
+    # AGENT_TYPE = AgentType.RANDOM
+    AGENT_TYPE = AgentType.MURPHY
 
     # estados iniciais
     # da para melhorar a lógica em um dicionário de estados
@@ -22,10 +23,10 @@ def main():
     ]
 
     print(f""" Resultados para um agente {AGENT_TYPE.name} com {TIME_STEPS} iterações:
-        cleaner_right_dirty => {results[0]} 
-        cleaner_right_clean => {results[1]}
-        cleaner_left_dirty => {results[2]}
-        cleaner_left_clean => {results[3]}""")
+        cleaner_right_dirty => {round(results[0], 4) * 100} % 
+        cleaner_right_clean => {round(results[1], 4) * 100} % 
+        cleaner_left_dirty => {round(results[2], 4) * 100} % 
+        cleaner_left_clean => {round(results[3], 4) * 100} % """)
     
 
 if __name__ == "__main__":
