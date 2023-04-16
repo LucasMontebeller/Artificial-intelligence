@@ -65,7 +65,7 @@ horse = Image('horse')#.prepare(Lib.PIL)
 
 # flip
 new_horse = PILImage.open(horse.path) 
-# new_horse = ops.flip(new_horse)
+new_horse = ops.flip(new_horse)
 plt.imshow(new_horse)
 plt.show()
 
