@@ -41,10 +41,6 @@ def distancia(celula_1, celula_2):
     dy = celula_1.y - celula_2.y
     return sqrt(dx ** 2 + dy ** 2)
 
-def distancia_manhattan(celula_1, celula_2):
-    dx = abs(celula_1.x - celula_2.x)
-    dy = abs(celula_1.y - celula_2.y)
-    return dx + dy
 
 def esta_contido(lista, celula):
     for elemento in lista:
@@ -250,7 +246,60 @@ def a_star_search(labirinto, inicio, goal, viewer):
         for v in vizinhos:
             if (not esta_contido(expandidos, v)) and (not esta_contido(fronteira, v)):
                 # f(n) = g(n) + h(n)
-                v.custo_total = distancia(v, inicio) + distancia_manhattan(v, goal) 
+                v.custo_total = custo_caminho(obtem_caminho(v)) + distancia(v, goal) 
+                fronteira.append(v)
+
+        expandidos.add(no_atual)
+
+        viewer.update(generated=fronteira,
+                      expanded=expandidos)
+        # viewer.pause()
+
+
+    caminho = obtem_caminho(goal_encontrado)
+    custo   = custo_caminho(caminho)
+    tempo_final = time.time()
+
+    return caminho, custo, expandidos, (tempo_final - tempo_inicial)
+
+def uniform_cost_search(labirinto, inicio, goal, viewer):
+    tempo_inicial = time.time()
+    # nos gerados e que podem ser expandidos (vermelhos)
+    fronteira = list()
+
+    # nos ja expandidos (amarelos)
+    expandidos = set()
+
+    # adiciona o no inicial na fronteira
+    fronteira.append(inicio)
+
+    # variavel para armazenar o goal quando ele for encontrado.
+    goal_encontrado = None
+
+    # Repete enquanto nos nao encontramos o goal e ainda
+    # existem para serem expandidos na fronteira. Se
+    # acabarem os nos da fronteira antes do goal ser encontrado,
+    # entao ele nao eh alcancavel.
+    while (len(fronteira) > 0) and (goal_encontrado is None):
+        
+        # fila com prioridade
+        fronteira.sort(key=lambda x: x.custo_total)
+        no_atual = fronteira.pop(0)
+
+        # busca os vizinhos do no
+        vizinhos = celulas_vizinhas_livres(no_atual, labirinto)
+
+        # verifica se o goal já foi alcançado
+        if (no_atual.x == goal.x) and (no_atual.y == goal.y):
+            goal_encontrado = no_atual
+            break
+
+        # para cada vizinho verifica se eh o goal e adiciona na
+        # fronteira se ainda nao foi expandido e nao esta na fronteira
+        for v in vizinhos:
+            if (not esta_contido(expandidos, v)) and (not esta_contido(fronteira, v)):
+                # f(n) = g(n)
+                v.custo_total = custo_caminho(obtem_caminho(v))
                 fronteira.append(v)
 
         expandidos.add(no_atual)
@@ -285,7 +334,8 @@ def main():
             f"\tTempo total gasto: {tempo_gasto}.\n\n"
         )
 
-    for _ in range(10):
+    for i in range(10):
+        print(f"Iteração {i}\n")
         #SEED = 42  # coloque None no lugar do 42 para deixar aleatorio
         #random.seed(SEED)
         N_LINHAS  = 15
@@ -340,7 +390,15 @@ def main():
         #----------------------------------------
         # Uniform Cost Search (Obs: opcional)
         #----------------------------------------
+        viewer._figname = "UCS"
+        caminho, custo_total, expandidos, tempo_gasto = \
+                uniform_cost_search(labirinto, INICIO, GOAL, viewer)
 
+        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, tempo_gasto)        
+
+        viewer.update(path=caminho)
+        viewer.pause()
+        print('-' * 100)
 
 
 
