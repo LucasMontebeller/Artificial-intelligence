@@ -5,17 +5,18 @@ from collections import deque
 from viewer import MazeViewer
 from math import inf, sqrt
 import time
+import numpy as np
 
 
 
-def gera_labirinto(n_linhas, n_colunas, inicio, goal):
+def gera_labirinto(n_linhas, n_colunas, inicio, goal, percentual_bloqueio=0.50):
     # cria labirinto vazio
     labirinto = [[0] * n_colunas for _ in range(n_linhas)]
 
     # adiciona celulas ocupadas em locais aleatorios de
-    # forma que 25% do labirinto esteja ocupado
-    numero_de_obstaculos = int(0.50 * n_linhas * n_colunas)
-    for _ in range(numero_de_obstaculos):
+    # forma que (percentual_bloqueio)% do labirinto esteja ocupado
+    numero_de_obstaculos = int(percentual_bloqueio * n_linhas * n_colunas)
+    while np.count_nonzero(labirinto) < numero_de_obstaculos:
         linha = random.randint(0, n_linhas-1)
         coluna = random.randint(0, n_colunas-1)
         labirinto[linha][coluna] = 1
@@ -139,8 +140,8 @@ def breadth_first_search(labirinto, inicio, goal, viewer):
 
         expandidos.add(no_atual)
 
-        viewer.update(generated=fronteira,
-                      expanded=expandidos)
+        # viewer.update(generated=fronteira,
+        #               expanded=expandidos)
         #viewer.pause()
 
 
@@ -197,8 +198,8 @@ def depth_first_search(labirinto, inicio, goal, viewer):
 
         expandidos.add(no_atual)
         
-        viewer.update(generated=fronteira,
-                          expanded=expandidos)
+        # viewer.update(generated=fronteira,
+        #                   expanded=expandidos)
         # viewer.pause()
 
 
@@ -251,8 +252,8 @@ def a_star_search(labirinto, inicio, goal, viewer):
 
         expandidos.add(no_atual)
 
-        viewer.update(generated=fronteira,
-                      expanded=expandidos)
+        # viewer.update(generated=fronteira,
+        #               expanded=expandidos)
         # viewer.pause()
 
 
@@ -304,8 +305,8 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
 
         expandidos.add(no_atual)
 
-        viewer.update(generated=fronteira,
-                      expanded=expandidos)
+        # viewer.update(generated=fronteira,
+        #               expanded=expandidos)
         # viewer.pause()
 
 
@@ -336,22 +337,23 @@ def main():
 
     for i in range(10):
         print(f"Iteração {i}\n")
-        #SEED = 42  # coloque None no lugar do 42 para deixar aleatorio
-        #random.seed(SEED)
-        N_LINHAS  = 15
-        N_COLUNAS = 15
+        SEED = 42  # coloque None no lugar do 42 para deixar aleatorio
+        random.seed(SEED)
+        N_LINHAS  = 300
+        N_COLUNAS = 300
         INICIO = Celula(y=0, x=0, anterior=None)
         GOAL   = Celula(y=N_LINHAS-1, x=N_COLUNAS-1, anterior=None)
+        PERCENTUAL_BLOQUEIO = 0.50
 
 
         """
         O labirinto sera representado por uma matriz (vizinhos de vizinhoss)
         em que uma posicao tem 0 se ela eh livre e 1 se ela esta ocupada.
         """
-        labirinto = gera_labirinto(N_LINHAS, N_COLUNAS, INICIO, GOAL)
+        labirinto = gera_labirinto(N_LINHAS, N_COLUNAS, INICIO, GOAL, PERCENTUAL_BLOQUEIO)
 
         viewer = MazeViewer(labirinto, INICIO, GOAL,
-                            step_time_miliseconds=20, zoom=40)
+                            step_time_miliseconds=20, zoom=3.5)
 
         #----------------------------------------
         # BFS Search
