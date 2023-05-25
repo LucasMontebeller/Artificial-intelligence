@@ -99,6 +99,7 @@ def UCS(G_inicial, s, destino):
 
     # INICIALIZACAO
     for v in G.nodes() - {s}:
+    # Melhor implementar um if aqui : if v == s:
         G.nodes[v]['cor'] = 'branco'
         G.nodes[v]['dis'] = np.inf
         G.nodes[v]['pre'] = None
@@ -141,6 +142,59 @@ def UCS(G_inicial, s, destino):
     # e cores desde o nó origem a todos os demais nós
     return G
 
+# Só falta melhorar o nome das chamadas dos metodos, essencialmente distancia e custo e padronizar com o de cima
+def A_Star(G_inicial, s, destino):
+    G = G_inicial.copy()
+
+    # INICIALIZACAO
+    for v in G.nodes() - {s}:
+        G.nodes[v]['cor'] = 'branco'
+        G.nodes[v]['dis'] = np.inf
+        G.nodes[v]['pre'] = None
+        G.nodes[v]['cus'] = None
+
+    G.nodes[s]['cor'] = 'cinza'
+    G.nodes[s]['dis'] = 0
+    G.nodes[s]['pre'] = None
+    G.nodes[s]['cus'] = None
+
+    # Fila (append (right), popleft)
+    Q = deque()
+    Q.append(s)
+    while True:
+        # fila com prioridade
+        Q = deque(sorted(Q, key=lambda x: G.nodes[x]['cus']))
+        u = Q.popleft()
+
+        if u == destino:
+            break
+
+        for v in G.neighbors(u):
+            distancia = G.nodes[u]['dis'] + calcula_custo_g(G, [u, v])
+            custo = distancia + estima_custo_h(v)
+
+            if G.nodes[v]['cor'] == 'branco':
+                G.nodes[v]['cor'] = 'cinza'
+                G.nodes[v]['dis'] = distancia
+                G.nodes[v]['pre'] = u
+                G.nodes[v]['cus'] = custo
+                Q.append(v)
+
+            # Caso o nó já tenha sido visitado, mas a distância pelo caminho atual é menor, efetua-se a troca
+            elif G.nodes[v]['cor'] == 'cinza' and distancia < G.nodes[v]['dis']:
+                G.nodes[v]['dis'] = distancia
+                G.nodes[v]['pre'] = u
+                G.nodes[v]['cus'] = custo
+
+
+        G.nodes[u]['cor'] = 'preto'
+
+        # print(u, G.nodes[u]['dis'], G.nodes[u]['cor'])
+
+    # Grafo G retornado contem as informações de distância
+    # e cores desde o nó origem a todos os demais nós
+    return G
+
 
 def main():
     ORIGEM = 'Arad'
@@ -154,6 +208,11 @@ def main():
     print(f'Custo: {custo}\t->\tCaminho: {caminho}')
 
     # A-star
+    G = A_Star(G_inicial, ORIGEM, DESTINO)
+    caminho = caminho_minimo(G, ORIGEM, DESTINO)
+    custo = calcula_custo_caminho(G, caminho)
+
+    print(f'Custo: {custo}\t->\tCaminho: {caminho}')
 
     nx.draw(G_inicial, with_labels=True)
     plt.show()
