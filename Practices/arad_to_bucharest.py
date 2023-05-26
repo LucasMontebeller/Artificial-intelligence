@@ -212,14 +212,24 @@ def main():
     caminho = caminho_minimo(G, ORIGEM, DESTINO)
     custo = calcula_custo_caminho(G, caminho)
     
-    print(f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}')
+    print(
+        "UCS:\n"
+        f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}'
+    )
+    print('-' * 200)
 
     # A-star
     G, passos = A_Star(G_inicial, ORIGEM, DESTINO)
     caminho = caminho_minimo(G, ORIGEM, DESTINO)
     custo = calcula_custo_caminho(G, caminho)
 
-    print(f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}')
+    print(
+        "A_Star:\n"
+        f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}'
+    )
+    print('-' * 200)
+
+    # IDFS (Extra)
 
     nx.draw(G_inicial, with_labels=True)
     plt.show()
