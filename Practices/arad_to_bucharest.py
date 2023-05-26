@@ -99,7 +99,6 @@ def UCS(G_inicial, s, destino):
 
     # INICIALIZACAO
     for v in G.nodes() - {s}:
-    # Melhor implementar um if aqui : if v == s:
         G.nodes[v]['cor'] = 'branco'
         G.nodes[v]['dis'] = np.inf
         G.nodes[v]['pre'] = None
@@ -111,7 +110,9 @@ def UCS(G_inicial, s, destino):
     # Fila (append (right), popleft)
     Q = deque()
     Q.append(s)
+    passos = 0
     while True:
+        passos += 1
         # fila com prioridade
         Q = deque(sorted(Q, key=lambda x: G.nodes[x]['dis']))
         u = Q.popleft()
@@ -120,6 +121,7 @@ def UCS(G_inicial, s, destino):
             break
 
         for v in G.neighbors(u):
+            # distância acumulada
             distancia = G.nodes[u]['dis'] + calcula_custo_g(G, [u, v])
 
             if G.nodes[v]['cor'] == 'branco':
@@ -140,9 +142,8 @@ def UCS(G_inicial, s, destino):
 
     # Grafo G retornado contem as informações de distância
     # e cores desde o nó origem a todos os demais nós
-    return G
+    return G, passos
 
-# Só falta melhorar o nome das chamadas dos metodos, essencialmente distancia e custo e padronizar com o de cima
 def A_Star(G_inicial, s, destino):
     G = G_inicial.copy()
 
@@ -161,7 +162,9 @@ def A_Star(G_inicial, s, destino):
     # Fila (append (right), popleft)
     Q = deque()
     Q.append(s)
+    passos = 0
     while True:
+        passos += 1
         # fila com prioridade
         Q = deque(sorted(Q, key=lambda x: G.nodes[x]['cus']))
         u = Q.popleft()
@@ -170,7 +173,9 @@ def A_Star(G_inicial, s, destino):
             break
 
         for v in G.neighbors(u):
+            # distância acumulada
             distancia = G.nodes[u]['dis'] + calcula_custo_g(G, [u, v])
+            # f(n) = g(n) + h(n)
             custo = distancia + estima_custo_h(v)
 
             if G.nodes[v]['cor'] == 'branco':
@@ -180,8 +185,8 @@ def A_Star(G_inicial, s, destino):
                 G.nodes[v]['cus'] = custo
                 Q.append(v)
 
-            # Caso o nó já tenha sido visitado, mas a distância pelo caminho atual é menor, efetua-se a troca
-            elif G.nodes[v]['cor'] == 'cinza' and distancia < G.nodes[v]['dis']:
+            # Caso o nó já tenha sido visitado, mas o custo pelo caminho atual é menor, efetua-se a troca
+            elif G.nodes[v]['cor'] == 'cinza' and custo < G.nodes[v]['cus']:
                 G.nodes[v]['dis'] = distancia
                 G.nodes[v]['pre'] = u
                 G.nodes[v]['cus'] = custo
@@ -193,7 +198,7 @@ def A_Star(G_inicial, s, destino):
 
     # Grafo G retornado contem as informações de distância
     # e cores desde o nó origem a todos os demais nós
-    return G
+    return G, passos
 
 
 def main():
@@ -201,18 +206,18 @@ def main():
     DESTINO = 'Bucharest'
 
     # UCS
-    G = UCS(G_inicial, ORIGEM, DESTINO)
+    G, passos = UCS(G_inicial, ORIGEM, DESTINO)
     caminho = caminho_minimo(G, ORIGEM, DESTINO)
     custo = calcula_custo_caminho(G, caminho)
     
-    print(f'Custo: {custo}\t->\tCaminho: {caminho}')
+    print(f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}')
 
     # A-star
-    G = A_Star(G_inicial, ORIGEM, DESTINO)
+    G, passos = A_Star(G_inicial, ORIGEM, DESTINO)
     caminho = caminho_minimo(G, ORIGEM, DESTINO)
     custo = calcula_custo_caminho(G, caminho)
 
-    print(f'Custo: {custo}\t->\tCaminho: {caminho}')
+    print(f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}')
 
     nx.draw(G_inicial, with_labels=True)
     plt.show()
