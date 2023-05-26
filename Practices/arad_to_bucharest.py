@@ -111,7 +111,8 @@ def UCS(G_inicial, s, destino):
     Q = deque()
     Q.append(s)
     passos = 0
-    while True:
+    
+    while Q:
         passos += 1
         # fila com prioridade
         Q = deque(sorted(Q, key=lambda x: G.nodes[x]['dis']))
@@ -163,7 +164,8 @@ def A_Star(G_inicial, s, destino):
     Q = deque()
     Q.append(s)
     passos = 0
-    while True:
+
+    while Q:
         passos += 1
         # fila com prioridade
         Q = deque(sorted(Q, key=lambda x: G.nodes[x]['cus']))
