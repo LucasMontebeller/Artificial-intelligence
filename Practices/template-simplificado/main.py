@@ -169,14 +169,12 @@ def depth_first_search(labirinto, inicio, goal, viewer):
     # existem para serem expandidos na fronteira. Se
     # acabarem os nos da fronteira antes do goal ser encontrado,
     # entao ele nao eh alcancavel.
-
     while (len(fronteira) > 0) and (goal_encontrado is None):
-        proximo_no = None
 
         # seleciona o primeiro item da pilha
-        no_atual = fronteira[-1]
+        no_atual = fronteira.pop()
 
-        # verifica se o goal já foi alcançado
+        # verifica se o goal foi alcançado
         if (no_atual.x == goal.x) and (no_atual.y == goal.y):
             goal_encontrado = no_atual
             break
@@ -184,16 +182,11 @@ def depth_first_search(labirinto, inicio, goal, viewer):
         # busca os vizinhos do no
         vizinhos = celulas_vizinhas_livres(no_atual, labirinto)
 
-        # seleciona o proximo no vizinho ainda não expandido e que não esteja na fronteira, aleatoriamente
-        vizinhos_livres = [v for v in vizinhos if not esta_contido(expandidos, v) and not esta_contido(fronteira, v)]
-        if vizinhos_livres:
-            proximo_no = random.choice(vizinhos_livres)
-
-        # caso exista entra na pilha, caso contrário volta para o nó anterior
-        if (proximo_no is not None):
-            fronteira.append(proximo_no)
-        else:
-            fronteira.pop()
+        # seleciona os vizinhos proximos que ainda não foram expandidos e que não estejam na fronteira, ordenando-os de forma aleatória.
+        vizinhos_acessiveis= [v for v in vizinhos if not esta_contido(expandidos, v) and not esta_contido(fronteira, v)]
+        random.shuffle(vizinhos_acessiveis)
+        for v in vizinhos_acessiveis:
+            fronteira.append(v)
 
         expandidos.add(no_atual)
         
@@ -212,13 +205,13 @@ def depth_first_search(labirinto, inicio, goal, viewer):
 def a_star_search(labirinto, inicio, goal, viewer):
     tempo_inicial = time.time()
     # nos gerados e que podem ser expandidos (vermelhos)
-    fronteira = set()
-
+    fronteira = list()
     # nos ja expandidos (amarelos)
     expandidos = set()
 
     # adiciona o no inicial na fronteira
-    fronteira.add(inicio)
+    inicio.custo_total = distancia(inicio, goal)
+    fronteira.append(inicio)
 
     # variavel para armazenar o goal quando ele for encontrado.
     goal_encontrado = None
@@ -229,9 +222,9 @@ def a_star_search(labirinto, inicio, goal, viewer):
     # entao ele nao eh alcancavel.
     while (len(fronteira) > 0) and (goal_encontrado is None):
         
-        # fila com prioridade
-        no_atual = min(fronteira, key=lambda x: x.custo_total)
-        fronteira.remove(no_atual)
+        # fila com prioridade, encontrando o no com menor custo.
+        fronteira.sort(key=lambda x: x.custo_total)
+        no_atual = fronteira.pop(0)
 
         # verifica se o goal já foi alcançado
         if (no_atual.x == goal.x) and (no_atual.y == goal.y):
@@ -242,21 +235,21 @@ def a_star_search(labirinto, inicio, goal, viewer):
         vizinhos = celulas_vizinhas_livres(no_atual, labirinto)
 
         # seleciona os nos vizinhos que ainda não foram expandidos
-        vizinhos_livres = [v for v in vizinhos if not esta_contido(expandidos, v)]
-        for v in vizinhos_livres:
+        vizinhos_acessiveis = [v for v in vizinhos if not esta_contido(expandidos, v)]
+        for v in vizinhos_acessiveis:
             # f(n) = g(n) + h(n)
             custo_total = custo_caminho(obtem_caminho(v)) + distancia(v, goal) 
+            v.custo_total = custo_total
 
             # adiciona os que ainda não estão na fronteira
             if (not esta_contido(fronteira, v)):
-                v.custo_total = custo_total
-                fronteira.add(v)
+                fronteira.append(v)
 
-            # para os que já estão, valida se o custo atual é menor
+            # para os que já estão, valida se o custo atual é menor e caso positivo, efetua-se a troca.
             else:
-                celula_fronteira = next((celula for celula in fronteira if celula.x == v.x and celula.y == v.y))
+                indice, celula_fronteira = [(indice, celula) for indice, celula in enumerate(fronteira) if celula.x == v.x and celula.y == v.y][0]
                 if custo_total < celula_fronteira.custo_total:
-                    celula_fronteira.custo_total = custo_total
+                    fronteira[indice] = v
 
         expandidos.add(no_atual)
 
@@ -274,13 +267,14 @@ def a_star_search(labirinto, inicio, goal, viewer):
 def uniform_cost_search(labirinto, inicio, goal, viewer):
     tempo_inicial = time.time()
     # nos gerados e que podem ser expandidos (vermelhos)
-    fronteira = set()
+    fronteira = list()
 
     # nos ja expandidos (amarelos)
     expandidos = set()
 
     # adiciona o no inicial na fronteira
-    fronteira.add(inicio)
+    inicio.custo_total = distancia(inicio, goal)
+    fronteira.append(inicio)
 
     # variavel para armazenar o goal quando ele for encontrado.
     goal_encontrado = None
@@ -291,9 +285,9 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
     # entao ele nao eh alcancavel.
     while (len(fronteira) > 0) and (goal_encontrado is None):
         
-        # fila com prioridade
-        no_atual = min(fronteira, key=lambda x: x.custo_total)
-        fronteira.remove(no_atual)
+        # fila com prioridade, encontrando o no com menor custo.
+        fronteira.sort(key=lambda x: x.custo_total)
+        no_atual = fronteira.pop(0)
 
         # verifica se o goal já foi alcançado
         if (no_atual.x == goal.x) and (no_atual.y == goal.y):
@@ -304,21 +298,21 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
         vizinhos = celulas_vizinhas_livres(no_atual, labirinto)
 
         # seleciona os nos vizinhos que ainda não foram expandidos
-        vizinhos_livres = [v for v in vizinhos if not esta_contido(expandidos, v)]
-        for v in vizinhos_livres:
+        vizinhos_acessiveis = [v for v in vizinhos if not esta_contido(expandidos, v)]
+        for v in vizinhos_acessiveis:
             # f(n) = g(n)
             custo_total = custo_caminho(obtem_caminho(v))
+            v.custo_total = custo_total
 
             # adiciona os que ainda não estão na fronteira
             if (not esta_contido(fronteira, v)):
-                v.custo_total = custo_total
-                fronteira.add(v)
+                fronteira.append(v)
 
-            # para os que já estão, valida se o custo atual é menor
+            # para os que já estão, valida se o custo atual é menor e caso positivo, efetua-se a troca.
             else:
-                celula_fronteira = next((celula for celula in fronteira if celula.x == v.x and celula.y == v.y))
+                indice, celula_fronteira = [(indice, celula) for indice, celula in enumerate(fronteira) if celula.x == v.x and celula.y == v.y][0]
                 if custo_total < celula_fronteira.custo_total:
-                    celula_fronteira.custo_total = custo_total
+                    fronteira[indice] = v
 
         expandidos.add(no_atual)
 
@@ -370,7 +364,7 @@ def main():
         labirinto = gera_labirinto(N_LINHAS, N_COLUNAS, INICIO, GOAL, PERCENTUAL_BLOQUEIO)
 
         viewer = MazeViewer(labirinto, INICIO, GOAL,
-                            step_time_miliseconds=20, zoom=3)
+                            step_time_miliseconds=50, zoom=3)
 
         #----------------------------------------
         # BFS Search
