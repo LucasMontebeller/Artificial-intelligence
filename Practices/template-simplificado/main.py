@@ -273,7 +273,6 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
     expandidos = set()
 
     # adiciona o no inicial na fronteira
-    inicio.custo_total = distancia(inicio, goal)
     fronteira.append(inicio)
 
     # variavel para armazenar o goal quando ele for encontrado.
