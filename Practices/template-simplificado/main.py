@@ -147,9 +147,10 @@ def breadth_first_search(labirinto, inicio, goal, viewer):
 
     caminho = obtem_caminho(goal_encontrado)
     custo   = custo_caminho(caminho)
+    gerados = expandidos.union(set(fronteira))
     tempo_final = time.time()
 
-    return caminho, custo, expandidos, (tempo_final - tempo_inicial)
+    return caminho, custo, expandidos, gerados, (tempo_final - tempo_inicial)
 
 
 def depth_first_search(labirinto, inicio, goal, viewer):
@@ -197,9 +198,10 @@ def depth_first_search(labirinto, inicio, goal, viewer):
 
     caminho = obtem_caminho(goal_encontrado)
     custo   = custo_caminho(caminho)
+    gerados = expandidos.union(set(fronteira))
     tempo_final = time.time()
 
-    return caminho, custo, expandidos, (tempo_final - tempo_inicial)
+    return caminho, custo, expandidos, gerados, (tempo_final - tempo_inicial)
 
 
 def a_star_search(labirinto, inicio, goal, viewer):
@@ -260,9 +262,10 @@ def a_star_search(labirinto, inicio, goal, viewer):
 
     caminho = obtem_caminho(goal_encontrado)
     custo   = custo_caminho(caminho)
+    gerados = expandidos.union(set(fronteira))
     tempo_final = time.time()
 
-    return caminho, custo, expandidos, (tempo_final - tempo_inicial)
+    return caminho, custo, expandidos, gerados, (tempo_final - tempo_inicial)
 
 def uniform_cost_search(labirinto, inicio, goal, viewer):
     tempo_inicial = time.time()
@@ -322,9 +325,10 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
 
     caminho = obtem_caminho(goal_encontrado)
     custo   = custo_caminho(caminho)
+    gerados = expandidos.union(set(fronteira))
     tempo_final = time.time()
 
-    return caminho, custo, expandidos, (tempo_final - tempo_inicial)
+    return caminho, custo, expandidos, gerados, (tempo_final - tempo_inicial)
 
 
 
@@ -333,19 +337,20 @@ def uniform_cost_search(labirinto, inicio, goal, viewer):
 
 def main():
 
-    def _exibe_resultado(algoritmo, caminho, custo_total, expandidos, tempo_gasto):
+    def _exibe_resultado(algoritmo, caminho, custo_total, expandidos, gerados, tempo_gasto):
         if len(caminho) == 0:
             print("Goal é inalcançavel neste labirinto.")
 
         print(
             f"{algoritmo}:"
             f"\tCusto total do caminho: {custo_total}.\n"
-            f"\tNumero de passos: {len(caminho)-1}.\n"
-            f"\tNumero total de nos expandidos: {len(expandidos)}.\n\n"
+            f"\tTamanho do caminho (quadrados percorridos): {len(caminho)-1}.\n"
+            f"\tNumero total de nos expandidos: {len(expandidos)}.\n"
+            f"\tNumero total de nos gerados: {len(gerados)}.\n"
             f"\tTempo total gasto: {tempo_gasto}.\n\n"
         )
 
-    for i in range(10):
+    for i in range(1): #range(10)
         print(f"Iteração {i}\n")
         SEED = 42  # coloque None no lugar do 42 para deixar aleatorio
         random.seed(SEED)
@@ -369,44 +374,44 @@ def main():
         # BFS Search
         #----------------------------------------
         viewer._figname = "BFS"
-        caminho, custo_total, expandidos, tempo_gasto = \
+        caminho, custo_total, expandidos, gerados, tempo_gasto = \
                 breadth_first_search(labirinto, INICIO, GOAL, viewer)
+        
+        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, gerados, tempo_gasto)        
 
-        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, tempo_gasto)        
-
-        viewer.update(path=caminho)
-        viewer.pause()
+        # viewer.update(path=caminho)
+        # viewer.pause()
         #----------------------------------------
         # DFS Search
         #----------------------------------------
         viewer._figname = "DFS"
-        caminho, custo_total, expandidos, tempo_gasto = \
+        caminho, custo_total, expandidos, gerados, tempo_gasto = \
                 depth_first_search(labirinto, INICIO, GOAL, viewer)
 
-        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, tempo_gasto)        
+        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, gerados, tempo_gasto)        
 
-        viewer.update(path=caminho)
-        viewer.pause()
+        # viewer.update(path=caminho)
+        # viewer.pause()
         #----------------------------------------
         # A-Star Search
         #----------------------------------------
         viewer._figname = "A-Star"
-        caminho, custo_total, expandidos, tempo_gasto = \
+        caminho, custo_total, expandidos, gerados, tempo_gasto = \
                 a_star_search(labirinto, INICIO, GOAL, viewer)
 
-        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, tempo_gasto)        
+        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, gerados, tempo_gasto)        
 
-        viewer.update(path=caminho)
-        viewer.pause()
+        # viewer.update(path=caminho)
+        # viewer.pause()
 
         #----------------------------------------
         # Uniform Cost Search (Obs: opcional)
         #----------------------------------------
         viewer._figname = "UCS"
-        caminho, custo_total, expandidos, tempo_gasto = \
+        caminho, custo_total, expandidos, gerados, tempo_gasto = \
                 uniform_cost_search(labirinto, INICIO, GOAL, viewer)
 
-        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, tempo_gasto)        
+        _exibe_resultado(viewer._figname, caminho, custo_total, expandidos, gerados, tempo_gasto)        
 
         viewer.update(path=caminho)
         viewer.pause()
