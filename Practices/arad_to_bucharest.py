@@ -203,6 +203,55 @@ def A_Star(G_inicial, s, destino):
     return G, passos
 
 
+def IDFS(G_inicial, s, destino, limite):
+    G = G_inicial.copy()
+
+    # INICIALIZACAO
+    for v in G.nodes() - {s}:
+        G.nodes[v]['cor'] = 'branco'
+        G.nodes[v]['dis'] = np.inf
+        G.nodes[v]['pre'] = None
+
+    G.nodes[s]['cor'] = 'cinza'
+    G.nodes[s]['dis'] = 0
+    G.nodes[s]['pre'] = None
+
+    # Pilha iterativa
+    Q = list()
+    Q.append(s)
+    passos = 0
+
+    for i in range(limite): 
+        passos += 1
+        u = Q.pop()
+
+        if u == destino:
+            return G, passos
+        
+        neighbors = list(G.neighbors(u))
+        # Aleatoriza a ordem dos vizinhos de u -> mais chances de melhorar o desempenho !
+        # random.shuffle(neighbors)
+        for v in neighbors:
+            if G.nodes[v]['cor'] == 'branco':
+                G.nodes[v]['cor'] = 'cinza'
+                G.nodes[v]['pre'] = u
+                Q.append(v)
+
+
+        G.nodes[u]['cor'] = 'preto'
+
+        # print(u, G.nodes[u]['dis'], G.nodes[u]['cor'])
+
+    # Chamada recursiva do DFS
+    result = None
+    while True:
+        result = IDFS(G_inicial, s, destino, limite + 1)
+        if result is not None:
+            return result
+
+
+# ----------------------------------------
+
 def main():
     ORIGEM = 'Arad'
     DESTINO = 'Bucharest'
@@ -230,6 +279,16 @@ def main():
     print('-' * 200)
 
     # IDFS (Extra)
+
+    G, passos = IDFS(G_inicial, ORIGEM, DESTINO, 1)
+    caminho = caminho_minimo(G, ORIGEM, DESTINO)
+    custo = calcula_custo_caminho(G, caminho)
+
+    print(
+        "IDFS:\n"
+        f'Custo: {custo}, \tpassos: {passos}\t->\tCaminho: {caminho}'
+    )
+    print('-' * 200)
 
     nx.draw(G_inicial, with_labels=True)
     plt.show()
