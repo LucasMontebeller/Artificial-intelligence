@@ -20,7 +20,9 @@ def gera_estado():
 
 def hill_climbing():
     estado = gera_estado()
+    passos=0
     while True:
+        passos+=1
         proximo_estado = gera_estado()
         ataques = calcula_ataques(estado)
 
@@ -31,18 +33,21 @@ def hill_climbing():
         
         estado = proximo_estado
 
-    return estado, ataques
+    return estado, ataques, passos
 
+# forca bruta
 def solucao_exata():
+    passos=0
     while True:
+        passos+=1
         estado = gera_estado()
         if calcula_ataques(estado) == 0:
             break
     
-    return estado
+    return estado, passos
 
 
 resultado = hill_climbing()
 resultado_exato = solucao_exata()
-print(f"Hill climbing - \testado: {resultado[0]} \tataques: {resultado[1]}")
-print(f"Exato - \testado: {resultado_exato} \tataques: {0}")
+print(f"Hill climbing - \testado: {resultado[0]} \tataques: {resultado[1]} \tpassos: {resultado[2]}")
+print(f"Exato - \testado: {resultado_exato[0]} \tataques: {0} \tpassos: {resultado_exato[1]}")
