@@ -50,7 +50,7 @@ def simulating_annealing(iteracoes, temperatura, taxa_resfriamento=0.95):
     estado = Estado()
     passos = 0
     for _ in range(iteracoes):
-        if estado.ataques == 0:
+        if estado.ataques == 0 or np.round(temperatura, 2) == 0:
             break
 
         passos+=1
