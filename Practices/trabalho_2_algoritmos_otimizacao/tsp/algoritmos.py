@@ -86,12 +86,18 @@ class Simulating_Anneling(Algoritmo):
 
 class Genetic_Algorithm(Algoritmo):
 
-    def __init__(self, tsp, max_iteracoes=200, taxa_mutacao=0.10):
+    def __init__(self, tsp, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=20):
         super().__init__(tsp)
         self.max_iteracoes = max_iteracoes
         self.taxa_mutacao = taxa_mutacao
+        self.tamanho_populacao = tamanho_populacao
 
     def cross_over_ox(self, solucao_1, solucao_2):
+        
+        # caso as duas soluções sejam iguais, não faz sentido continuar o crossover
+        if solucao_1 == solucao_2:
+            return solucao_1, calcula_custo(self.tsp, solucao_1)
+
         corte_inicial, corte_final = self.gera_cortes(len(solucao_1) + 1, ordem_importante=True)
 
         # gera os descendentes
@@ -149,27 +155,41 @@ class Genetic_Algorithm(Algoritmo):
 
 
     def executa(self):
-
-        solucao = solucao_aleatoria(self.tsp)
-
-        # melhor solucao ate o momento
-        solucao_melhor, custo_melhor = obtem_melhor_vizinho(self.tsp, solucao)
+        
+        # população inicial
+        solucoes = [solucao_aleatoria(self.tsp) for _ in range(self.tamanho_populacao)]
+        solucoes_herdeiras = []
+        solucao_melhor, custo_melhor = np.inf, np.inf
 
         for _ in range(self.max_iteracoes):
             
-            # selecao
-            candidato_atual, custo_atual = obtem_melhor_vizinho(self.tsp, solucao_melhor)
+            for solucao_atual in solucoes:
+                
+                # valida a melhor solução até o momento
+                custo_atual = calcula_custo(self.tsp, solucao_atual)
+                if custo_atual < custo_melhor:
+                    solucao_melhor = solucao_atual
+                    custo_melhor = custo_atual
+                
+                # selecao
+                solucao_vizinho, custo_vizinho = obtem_melhor_vizinho(self.tsp, solucao_atual)
+                if custo_vizinho < custo_melhor:
+                    custo_melhor = custo_vizinho
 
-            # crossover
-            filho, custo = self.cross_over_ox(solucao_melhor, candidato_atual)
+                # crossover
+                solucao_filho, custo_filho = self.cross_over_ox(solucao_atual, solucao_vizinho)
 
-            if custo < custo_melhor:
-                custo_melhor = custo
-                solucao_melhor = filho
+                # mutacao
+                if np.random.random() < self.taxa_mutacao:
+                    solucao_filho, custo_filho = self.mutacao(solucao_filho)
 
-            # mutacao
-            if np.random.random() < self.taxa_mutacao:
-                custo_melhor, solucao_melhor = self.mutacao(solucao_melhor)
+                # adiciona na próxima lista de herdeiros, tentando preservar os melhores genes 
+                if custo_melhor < custo_filho:
+                    solucao_filho = solucao_melhor
+                solucoes_herdeiras.append(solucao_filho)
 
+            # limpa as soluções herdeiras para reiniciar o ciclo de busca
+            solucoes = solucoes_herdeiras.copy()
+            solucoes_herdeiras.clear()
                 
         return custo_melhor, solucao_melhor

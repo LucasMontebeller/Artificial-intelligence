@@ -21,7 +21,7 @@ def executa_algoritmos(algoritmos: set(), n_vezes: int):
 def main():
     # Simula a criação de N cidades
     # com suas respectivas distâncias
-    n_cidades=10
+    n_cidades=30
     df_coordenadas = gera_coordenadas_aleatorias(n_cidades)
 
     tsp = gera_problema_tsp(df_coordenadas)
@@ -32,8 +32,8 @@ def main():
     # Executa os algoritmos
     print('')
     algoritmos = {
-        # Hill_Climbing(tsp), 
-        # Simulating_Anneling(tsp, temperatura=5000, taxa_resfriamento=0.995, max_iteracoes=50),
+        Hill_Climbing(tsp), 
+        Simulating_Anneling(tsp, temperatura=5000, taxa_resfriamento=0.995, max_iteracoes=50),
         Genetic_Algorithm(tsp)
     }
     executa_algoritmos(algoritmos, 10)
