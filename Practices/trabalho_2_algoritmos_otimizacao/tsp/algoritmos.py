@@ -5,37 +5,22 @@ import numpy as np
 # obs : validar com o professor se a solução inicial não deveria ser a mesma para todos os algoritmos !
 class Algoritmo(ABC):
 
-    def __init__(self, tsp, solucao_inicial):
+    def __init__(self, tsp):
         self.tsp = tsp
-        self.solucao_inicial = solucao_inicial
-        self.primeira_chamada = True
 
     @abstractmethod
     def executa(self):
-        pass
-    
-    # Metodo para limpar os atributos da instância
-    @abstractmethod
-    def dispose(self):
         pass
         
 
 class Hill_Climbing(Algoritmo):
 
-    def __init__(self, tsp, solucao_inicial):
-        super().__init__(tsp, solucao_inicial)
-    
-    def dispose(self):
-        self.primeira_chamada = True
+    def __init__(self, tsp):
+        super().__init__(tsp)
 
     def executa(self):
 
-        # solucao inicial
-        if self.primeira_chamada:
-            solucao = self.solucao_inicial
-            self.primeira_chamada = False
-        else:
-            solucao = solucao_aleatoria(self.tsp)
+        solucao = solucao_aleatoria(self.tsp)
             
         # melhor solucao ate o momento
         solucao_melhor, custo_melhor = obtem_melhor_vizinho(self.tsp, solucao)
@@ -51,21 +36,16 @@ class Hill_Climbing(Algoritmo):
             else:
                 break   # custo nao melhorou, entao sai do while
         
-        self.dispose()
         return custo_melhor, solucao_melhor
     
     
 class Simulating_Anneling(Algoritmo):
 
-    def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento, max_iteracoes=2000):
-        super().__init__(tsp, solucao_inicial)
-        self.temperatura = temperatura
+    def __init__(self, tsp, temperatura, taxa_resfriamento, max_iteracoes=2000):
+        super().__init__(tsp)
+        self.temperatura = temperatura # não está sendo usado devido a mudança no calculo da probabilidade
         self.taxa_resfriamento = taxa_resfriamento
         self.max_iteracoes = max_iteracoes
-        self.passos = 0
-
-    def dispose(self):
-        self.primeira_chamada = True
         self.passos = 0
 
     # Probabilidade decrecendo linearmente até 90% das iterações, depois zero.
@@ -77,22 +57,12 @@ class Simulating_Anneling(Algoritmo):
 
     def executa(self):
 
-        # solucao inicial
-        if self.primeira_chamada:
-            solucao = self.solucao_inicial
-            self.primeira_chamada = False
-        else:
-            solucao = solucao_aleatoria(self.tsp)
+        solucao = solucao_aleatoria(self.tsp)
 
         # melhor solucao ate o momento
-        # solucao_melhor, custo_melhor = solucao, calcula_custo(self.tsp, solucao)
         solucao_melhor, custo_melhor = obtem_melhor_vizinho(self.tsp, solucao)
 
         for _ in range(self.max_iteracoes):
-
-            # gera uma nova solução aleatória para comparação
-            # nova_solucao = solucao_aleatoria(self.tsp)
-            # candidato_atual, custo_atual = nova_solucao, calcula_custo(self.tsp, nova_solucao)
 
             # tenta obter um candidato melhor
             candidato_atual, custo_atual = obtem_melhor_vizinho(self.tsp, solucao_melhor)
@@ -102,7 +72,6 @@ class Simulating_Anneling(Algoritmo):
                 custo_melhor = custo_atual
                 solucao_melhor = candidato_atual
                 
-            # elif (np.random.random() < np.exp(-delta_E/self.temperatura)):
             elif self.aceita_vizinho():
                 custo_melhor = custo_atual
                 solucao_melhor = candidato_atual
@@ -111,5 +80,96 @@ class Simulating_Anneling(Algoritmo):
             self.temperatura*=self.taxa_resfriamento
             self.passos+=1
 
-        self.dispose()
+        self.passos=0
+        return custo_melhor, solucao_melhor
+    
+
+class Genetic_Algorithm(Algoritmo):
+
+    def __init__(self, tsp, max_iteracoes=200, taxa_mutacao=0.10):
+        super().__init__(tsp)
+        self.max_iteracoes = max_iteracoes
+        self.taxa_mutacao = taxa_mutacao
+
+    def cross_over_ox(self, solucao_1, solucao_2):
+        corte_inicial, corte_final = self.gera_cortes(len(solucao_1) + 1, ordem_importante=True)
+
+        # gera os descendentes
+        filho_1 = [solucao_1[0] if _ == 0 else '' for _ in range(len(solucao_1))]
+        filho_2 = [solucao_1[0] if _ == 0 else '' for _ in range(len(solucao_2))]
+
+        filho_1[corte_inicial:corte_final] = solucao_2[corte_inicial:corte_final]
+        filho_2[corte_inicial:corte_final] = solucao_1[corte_inicial:corte_final]
+
+        # aplica o cross over OX
+        genes_1 = solucao_1[corte_final:] + solucao_1[:corte_final]
+        genes_1 = [x for x in genes_1 if x not in filho_1]
+
+        genes_2 = solucao_2[corte_final:] + solucao_2[:corte_final]
+        genes_2 = [x for x in genes_2 if x not in filho_2]
+
+        # preenche os espaços vazios
+        for i in range(len(filho_1) - 1, -1, -1):
+            if filho_1[i] == '' and genes_1[0] not in filho_1:
+                filho_1[i] = genes_1.pop(0)
+
+        for i in range(len(filho_2) - 1, -1, -1):
+            if filho_2[i] == '' and genes_2[0] not in filho_2:
+                filho_2[i] = genes_2.pop(0)
+        
+        # realiza o torneio
+        custo_filho_1 = calcula_custo(self.tsp, filho_1)
+        custo_filho_2 = calcula_custo(self.tsp, filho_2)
+
+        return (filho_1, custo_filho_1) if custo_filho_1 <= custo_filho_2 else (filho_2, custo_filho_2)
+    
+    def mutacao(self, solucao):
+        corte_inicial, corte_final = self.gera_cortes(len(solucao))
+
+        aux = solucao[corte_inicial]
+        solucao[corte_inicial] = solucao[corte_final]
+        solucao[corte_final] = aux
+
+        return solucao, calcula_custo(self.tsp, solucao)
+    
+    def gera_cortes(self, tamanho_solucao, ordem_importante=False):
+        corte_inicial = corte_inicial = np.random.randint(1, tamanho_solucao)
+        corte_final = corte_inicial = np.random.randint(1, tamanho_solucao)
+
+        # gera novos cortes em caso de inconsistências
+        while corte_inicial == corte_final:
+            corte_final = np.random.randint(1, tamanho_solucao)
+
+        if corte_inicial > corte_final and ordem_importante:
+            aux = corte_final
+            corte_final = corte_inicial
+            corte_inicial = aux
+
+        return corte_inicial, corte_final
+
+
+    def executa(self):
+
+        solucao = solucao_aleatoria(self.tsp)
+
+        # melhor solucao ate o momento
+        solucao_melhor, custo_melhor = obtem_melhor_vizinho(self.tsp, solucao)
+
+        for _ in range(self.max_iteracoes):
+            
+            # selecao
+            candidato_atual, custo_atual = obtem_melhor_vizinho(self.tsp, solucao_melhor)
+
+            # crossover
+            filho, custo = self.cross_over_ox(solucao_melhor, candidato_atual)
+
+            if custo < custo_melhor:
+                custo_melhor = custo
+                solucao_melhor = filho
+
+            # mutacao
+            if np.random.random() < self.taxa_mutacao:
+                custo_melhor, solucao_melhor = self.mutacao(solucao_melhor)
+
+                
         return custo_melhor, solucao_melhor

@@ -1,6 +1,7 @@
 from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas
-from algoritmos import Hill_Climbing, Simulating_Anneling
+from algoritmos import Hill_Climbing, Simulating_Anneling, Genetic_Algorithm
 
+# Validar possibilidade de execução multi-threading
 def executa_algoritmos(algoritmos: set(), n_vezes: int):
     for x in algoritmos:
         melhores_solucoes = []
@@ -25,14 +26,15 @@ def main():
 
     tsp = gera_problema_tsp(df_coordenadas)
 
-    solucao_inicial = ['A'+str(i) for i in range(n_cidades)]
+    # solucao_inicial = ['A'+str(i) for i in range(n_cidades)]
     # plota_rotas(df_coordenadas, solucao_inicial)
 
     # Executa os algoritmos
     print('')
     algoritmos = {
-        Hill_Climbing(tsp, solucao_inicial), 
-        Simulating_Anneling(tsp, solucao_inicial, temperatura=2000, taxa_resfriamento=0.95, max_iteracoes=1000)
+        # Hill_Climbing(tsp), 
+        # Simulating_Anneling(tsp, temperatura=5000, taxa_resfriamento=0.995, max_iteracoes=50),
+        Genetic_Algorithm(tsp)
     }
     executa_algoritmos(algoritmos, 10)
 
