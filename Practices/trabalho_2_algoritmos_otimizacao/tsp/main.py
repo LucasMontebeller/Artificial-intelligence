@@ -1,27 +1,27 @@
 from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas
-from algoritmos import Hill_Climbing, Simulating_Anneling, Genetic_Algorithm
+from algoritmos import Hill_Climbing, Simulating_Anneling, Genetic_Algorithm, Forca_Bruta
 
 # Validar possibilidade de execução multi-threading
 def executa_algoritmos(algoritmos: set(), n_vezes: int):
     for x in algoritmos:
-        melhores_solucoes = []
+        melhores_estados = []
         print(f'### Executando algoritmo {x.__class__.__name__} ###\n')
         for _ in range(n_vezes):
-            custo, solucao = x.executa()
-            print(f'{custo:7.3f}, {solucao}')
-            melhores_solucoes.append((custo, solucao))
+            estado = x.executa()
+            print(f'{estado.custo:7.3f}, {estado.solucao}')
+            melhores_estados.append(estado)
 
         # Ordena as soluções pelo custo em ordem crescente
-        melhores_solucoes.sort(key=lambda s: s[0])
-        melhor_custo, melhor_solucao = melhores_solucoes[0]
+        
+        melhor_estado = sorted(melhores_estados, key=lambda x: x.custo)[0]
 
-        print(f'\n \033[32mMelhor solução: {melhor_custo:7.3f}, {melhor_solucao}\033[0m')
+        print(f'\n \033[32mMelhor solução: {melhor_estado.custo:7.3f}, {melhor_estado.solucao}\033[0m')
         print('-' * 100)
 
 def main():
     # Simula a criação de N cidades
     # com suas respectivas distâncias
-    n_cidades=30
+    n_cidades=25
     df_coordenadas = gera_coordenadas_aleatorias(n_cidades)
 
     tsp = gera_problema_tsp(df_coordenadas)
@@ -33,8 +33,9 @@ def main():
     print('')
     algoritmos = {
         Hill_Climbing(tsp), 
-        Simulating_Anneling(tsp, temperatura=5000, taxa_resfriamento=0.995, max_iteracoes=50),
-        Genetic_Algorithm(tsp)
+        Simulating_Anneling(tsp, temperatura=2000, taxa_resfriamento=0.995, max_iteracoes=500),
+        Genetic_Algorithm(tsp, max_iteracoes=200, taxa_mutacao=0.15, tamanho_populacao=15),
+        Forca_Bruta(tsp)
     }
     executa_algoritmos(algoritmos, 10)
 
