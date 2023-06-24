@@ -45,16 +45,25 @@ class Estado():
             corte_inicial = aux
 
         return corte_inicial, corte_final
+    
+    # Define comparativo baseado no hash (solucao, custo)
+    def __eq__(self, other):
+        if isinstance(other, Estado):
+            return self.solucao == other.solucao and self.custo == other.custo
+        return False
+    
+    def __hash__(self):
+        return hash((tuple(self.solucao), self.custo))
 
-        
 
 class Hill_Climbing(Algoritmo):
 
-    def __init__(self, tsp):
+    def __init__(self, tsp, solucao_inicial):
         super().__init__(tsp)
+        self.solucao_inicial = solucao_inicial
 
     def executa(self):
-        estado = Estado(self.tsp)
+        estado = Estado(self.tsp, self.solucao_inicial)
         melhor_estado = estado
         while True:
             estado_vizinho = estado.gera_vizinho_aleatorio()
@@ -66,11 +75,31 @@ class Hill_Climbing(Algoritmo):
         
         return melhor_estado
     
+class Hill_Climbing_Restart(Algoritmo):
+
+    def __init__(self, tsp, solucao_inicial, num_restarts):
+        super().__init__(tsp)
+        self.solucao_inicial = solucao_inicial
+        self.num_restarts = num_restarts
+
+    def executa(self):
+        melhor_estado_global = None
+        hill_climbing = Hill_Climbing(self.tsp, self.solucao_inicial)
+
+        for _ in range(self.num_restarts):
+            melhor_estado_local = hill_climbing.executa()
+
+            if melhor_estado_global is None or melhor_estado_local.custo < melhor_estado_global.custo:
+                melhor_estado_global = melhor_estado_local
+
+        return melhor_estado_global
+        
     
 class Simulating_Anneling(Algoritmo):
 
-    def __init__(self, tsp, temperatura, taxa_resfriamento, max_iteracoes=2000):
+    def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento, max_iteracoes=2000):
         super().__init__(tsp)
+        self.solucao_inicial = solucao_inicial
         self.temperatura = temperatura
         self.taxa_resfriamento = taxa_resfriamento
         self.max_iteracoes = max_iteracoes
@@ -79,14 +108,14 @@ class Simulating_Anneling(Algoritmo):
         return True if np.random.random() < np.exp(-energia/self.temperatura) else False
         
     def executa(self):
-        estado = Estado(self.tsp)
+        estado = Estado(self.tsp, self.solucao_inicial)
         melhor_estado = estado
         for _ in range(self.max_iteracoes):
             estado_vizinho = estado.gera_vizinho_aleatorio()
 
             # energia do estado
-            delta_e = estado.custo - estado_vizinho.custo
-            # valida se o estado vizinho é melhor em relação ao fitness ou troca para um outro com probabilidade ~ temperatura
+            delta_e = estado_vizinho.custo - estado.custo
+            # valida se o estado vizinho possui menor custo em relação ao fitness ou troca para um outro com probabilidade ~ temperatura
             if delta_e < 0 or self.aceita_vizinho(delta_e):
                 melhor_estado = estado_vizinho
                 
@@ -98,8 +127,9 @@ class Simulating_Anneling(Algoritmo):
 
 class Genetic_Algorithm(Algoritmo):
 
-    def __init__(self, tsp, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=20):
+    def __init__(self, tsp, solucao_inicial, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=20):
         super().__init__(tsp)
+        self.solucao_inicial = solucao_inicial
         self.max_iteracoes = max_iteracoes
         self.taxa_mutacao = taxa_mutacao
         self.tamanho_populacao = tamanho_populacao
@@ -157,7 +187,8 @@ class Genetic_Algorithm(Algoritmo):
     def executa(self):
         
         # população inicial
-        populacao = [Estado(self.tsp, solucao_aleatoria(self.tsp)) for _ in range(self.tamanho_populacao)]
+        estado_inicial = Estado(self.tsp, self.solucao_inicial)
+        populacao = set(estado_inicial.gera_vizinho_aleatorio() for _ in range(self.tamanho_populacao))
         populacao_sucessora = []
 
         for _ in range(self.max_iteracoes):
@@ -178,7 +209,7 @@ class Genetic_Algorithm(Algoritmo):
                 populacao_sucessora.extend([estado_filho_1, estado_filho_2])
 
             # limpa as soluções herdeiras para reiniciar o ciclo de busca, preservando os melhores indivíduos até o momento (elitismo)
-            populacao = sorted(populacao_sucessora.copy(), key=lambda x: x.custo) [:self.tamanho_populacao]
+            populacao = sorted(set(populacao_sucessora.copy()), key=lambda x: x.custo) [:self.tamanho_populacao]
             populacao_sucessora.clear()
 
         melhor_estado = populacao[0]
