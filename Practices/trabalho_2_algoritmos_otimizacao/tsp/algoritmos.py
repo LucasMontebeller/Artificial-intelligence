@@ -97,37 +97,45 @@ class Hill_Climbing_Restart(Algoritmo):
     
 class Simulating_Anneling(Algoritmo):
 
-    def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento, max_iteracoes=2000):
+    def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento):
         super().__init__(tsp)
         self.solucao_inicial = solucao_inicial
         self.temperatura = temperatura
         self.taxa_resfriamento = taxa_resfriamento
-        self.max_iteracoes = max_iteracoes
 
-    def aceita_vizinho(self, energia: float):
-        return True if np.random.random() < np.exp(-energia/self.temperatura) else False
+    # probabilidade dada pelo fator de Boltzmann
+    def aceita_vizinho(self, energia: float, temperatura: float):
+        return True if np.random.random() < np.exp(-energia/temperatura) else False
         
     def executa(self):
         estado = Estado(self.tsp, self.solucao_inicial)
         melhor_estado = estado
-        for _ in range(self.max_iteracoes):
-            estado_vizinho = estado.gera_vizinho_aleatorio()
+        temperatura = self.temperatura
 
+        while temperatura > 0.1:
+            estado_vizinho = estado.gera_vizinho_aleatorio()
+            
             # energia do estado
             delta_e = estado_vizinho.custo - estado.custo
-            # valida se o estado vizinho possui menor custo em relação ao fitness ou troca para um outro com probabilidade ~ temperatura
-            if delta_e < 0 or self.aceita_vizinho(delta_e):
-                melhor_estado = estado_vizinho
+
+            # redução de energia, implicando que a nova solução é melhor que a anterior
+            if delta_e < 0:
+                estado = estado_vizinho
+                melhor_estado = estado
+
+            # aumento de energia, aceita novos vizinhos com probabilidade ~ T
+            elif self.aceita_vizinho(delta_e, temperatura):
+                estado = estado_vizinho
                 
             # atualiza temperatura
-            self.temperatura*=self.taxa_resfriamento
+            temperatura*=self.taxa_resfriamento
 
         return melhor_estado
     
 
 class Genetic_Algorithm(Algoritmo):
 
-    def __init__(self, tsp, solucao_inicial, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=20):
+    def __init__(self, tsp, solucao_inicial, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=15):
         super().__init__(tsp)
         self.solucao_inicial = solucao_inicial
         self.max_iteracoes = max_iteracoes

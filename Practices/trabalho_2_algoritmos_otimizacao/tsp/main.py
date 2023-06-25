@@ -35,8 +35,8 @@ def main():
     algoritmos = {
         Hill_Climbing(tsp, solucao_inicial),
         Hill_Climbing_Restart(tsp, solucao_inicial, 15), 
-        Simulating_Anneling(tsp, solucao_inicial, temperatura=2000, taxa_resfriamento=0.95, max_iteracoes=10000),
-        Genetic_Algorithm(tsp, solucao_inicial, max_iteracoes=200, taxa_mutacao=0.15, tamanho_populacao=15),
+        Simulating_Anneling(tsp, solucao_inicial, temperatura=10, taxa_resfriamento=0.995),
+        Genetic_Algorithm(tsp, solucao_inicial, max_iteracoes=500, taxa_mutacao=0.20, tamanho_populacao=15),
         Forca_Bruta(tsp)
     }
     executa_algoritmos(algoritmos, 10)
