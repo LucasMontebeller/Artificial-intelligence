@@ -1,4 +1,4 @@
-from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas, boxplot_sorted, executa_n_vezes
+from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas, boxplot_sorted, executa_n_vezes, plota_graficos
 from algoritmos import Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm, Forca_Bruta
 
 def main():
@@ -22,10 +22,11 @@ def main():
         Forca_Bruta(tsp)
     }
 
-    df_custo, estatisticas = executa_n_vezes(algoritmos, 10)
+    df_custo, estatisticas, dados = executa_n_vezes(algoritmos, 10)
     print('### Estatisticas ###')
     print(estatisticas)
     boxplot_sorted(df_custo, rot=90, figsize=(8,6), fontsize=12)
+    plota_graficos(dados)
     
 if __name__ == '__main__':
     main()

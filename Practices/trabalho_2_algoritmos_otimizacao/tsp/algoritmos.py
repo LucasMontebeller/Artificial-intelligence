@@ -61,19 +61,38 @@ class Hill_Climbing(Algoritmo):
     def __init__(self, tsp, solucao_inicial):
         super().__init__(tsp)
         self.solucao_inicial = solucao_inicial
+        self.passos = []
+        self.melhor_custo = []
 
     def executa(self):
-        estado = Estado(self.tsp, self.solucao_inicial)
-        melhor_estado = estado
-        while True:
-            estado_vizinho = estado.gera_vizinho_aleatorio()
+        melhor_estado = Estado(self.tsp, self.solucao_inicial)
 
-            if estado_vizinho.custo < estado.custo:
+        # limpa as informações da classe
+        passos = 0
+        self.limpa_dados()
+        while True:
+            # Dados para gerar o gráfico da evolução da função objetivo
+            self.passos.append(passos)
+            self.melhor_custo.append(melhor_estado.custo)
+
+            estado_vizinho = melhor_estado.gera_vizinho_aleatorio()
+
+            if estado_vizinho.custo < melhor_estado.custo:
                 melhor_estado = estado_vizinho
             else:
                 break   # custo nao melhorou, entao sai do while
-        
-        return melhor_estado
+
+            passos += 1
+
+        return melhor_estado, self.coleta_dados()
+    
+    def coleta_dados(self):
+        return self.passos, self.melhor_custo
+    
+    def limpa_dados(self):
+        self.passos.clear()
+        self.melhor_custo.clear()
+
     
 class Hill_Climbing_Restart(Algoritmo):
 
@@ -81,20 +100,37 @@ class Hill_Climbing_Restart(Algoritmo):
         super().__init__(tsp)
         self.solucao_inicial = solucao_inicial
         self.num_restarts = num_restarts
+        self.passos = []
+        self.melhor_custo = []
 
     def executa(self):
         melhor_estado_global = None
-        hill_climbing = Hill_Climbing(self.tsp, self.solucao_inicial)
 
+        # limpa as informações da classe
+        self.limpa_dados()
+        passos = 0
+
+        hill_climbing = Hill_Climbing(self.tsp, self.solucao_inicial)
         for _ in range(self.num_restarts):
-            melhor_estado_local = hill_climbing.executa()
+            melhor_estado_local = hill_climbing.executa()[0]
 
             if melhor_estado_global is None or melhor_estado_local.custo < melhor_estado_global.custo:
                 melhor_estado_global = melhor_estado_local
 
-        return melhor_estado_global
-        
+            self.passos.append(passos)
+            self.melhor_custo.append(melhor_estado_global.custo)
+            passos+=1
+
+        return melhor_estado_global, self.coleta_dados()
     
+    def coleta_dados(self):
+        return self.passos, self.melhor_custo
+    
+    def limpa_dados(self):
+        self.passos.clear()
+        self.melhor_custo.clear()
+        
+
 class Simulating_Anneling(Algoritmo):
 
     def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento):
@@ -102,6 +138,8 @@ class Simulating_Anneling(Algoritmo):
         self.solucao_inicial = solucao_inicial
         self.temperatura = temperatura
         self.taxa_resfriamento = taxa_resfriamento
+        self.passos = []
+        self.melhor_custo = []
 
     # probabilidade dada pelo fator de Boltzmann
     def aceita_vizinho(self, energia: float, temperatura: float):
@@ -112,7 +150,14 @@ class Simulating_Anneling(Algoritmo):
         melhor_estado = estado
         temperatura = self.temperatura
 
+        # limpa as informações da classe
+        passos = 0
+        self.limpa_dados()
         while temperatura > 0.1:
+            # Dados para gerar o gráfico da evolução da função objetivo
+            self.passos.append(passos)
+            self.melhor_custo.append(melhor_estado.custo)
+
             estado_vizinho = estado.gera_vizinho_aleatorio()
             
             # energia do estado
@@ -129,8 +174,16 @@ class Simulating_Anneling(Algoritmo):
                 
             # atualiza temperatura
             temperatura*=self.taxa_resfriamento
+            passos+=1
 
-        return melhor_estado
+        return melhor_estado, self.coleta_dados()
+    
+    def coleta_dados(self):
+        return self.passos, self.melhor_custo
+    
+    def limpa_dados(self):
+        self.passos.clear()
+        self.melhor_custo.clear()
     
 
 class Genetic_Algorithm(Algoritmo):
@@ -141,6 +194,8 @@ class Genetic_Algorithm(Algoritmo):
         self.max_iteracoes = max_iteracoes
         self.taxa_mutacao = taxa_mutacao
         self.tamanho_populacao = tamanho_populacao
+        self.passos = []
+        self.melhor_custo = []
 
     def cross_over_ox(self, estado_1: Estado, estado_2: Estado):
         
@@ -198,10 +253,18 @@ class Genetic_Algorithm(Algoritmo):
         estado_inicial = Estado(self.tsp, self.solucao_inicial)
         populacao = set(estado_inicial.gera_vizinho_aleatorio() for _ in range(self.tamanho_populacao))
         populacao_sucessora = []
+        melhor_estado = None
 
+        # limpa as informações da classe
+        passos = 0
+        self.limpa_dados()
         for _ in range(self.max_iteracoes):
+            melhor_estado = sorted(populacao, key=lambda x: x.custo)[0] if melhor_estado is None else populacao[0]
             
             for estado in populacao:
+                # Dados para gerar o gráfico da evolução da função objetivo
+                self.passos.append(passos)
+                self.melhor_custo.append(melhor_estado.custo)
                 
                 # selecao
                 estado_vizinho = estado.gera_vizinho_aleatorio()
@@ -216,12 +279,20 @@ class Genetic_Algorithm(Algoritmo):
                 # adiciona na próxima lista de herdeiros
                 populacao_sucessora.extend([estado_filho_1, estado_filho_2])
 
+                passos+=1
+
             # limpa as soluções herdeiras para reiniciar o ciclo de busca, preservando os melhores indivíduos até o momento (elitismo)
             populacao = sorted(set(populacao_sucessora.copy()), key=lambda x: x.custo) [:self.tamanho_populacao]
             populacao_sucessora.clear()
 
-        melhor_estado = populacao[0]
-        return melhor_estado
+        return melhor_estado, self.coleta_dados()
+    
+    def coleta_dados(self):
+        return self.passos, self.melhor_custo
+    
+    def limpa_dados(self):
+        self.passos.clear()
+        self.melhor_custo.clear()
     
 
 class Forca_Bruta(Algoritmo):
@@ -243,4 +314,4 @@ class Forca_Bruta(Algoritmo):
             else:
                 break   # custo nao melhorou, entao sai do while
 
-        return melhor_estado
+        return melhor_estado, (list(), list()) # a principio não exibiremos no gráfico
