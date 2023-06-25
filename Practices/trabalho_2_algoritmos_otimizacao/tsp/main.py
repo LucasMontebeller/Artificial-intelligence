@@ -1,23 +1,5 @@
-from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas
+from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas, boxplot_sorted, executa_n_vezes
 from algoritmos import Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm, Forca_Bruta
-import numpy as np
-
-# Validar possibilidade de execução multi-threading
-def executa_algoritmos(algoritmos: set(), n_vezes: int):
-    for x in algoritmos:
-        melhores_estados = []
-        print(f'### Executando algoritmo {x.__class__.__name__} ###\n')
-        for _ in range(n_vezes):
-            estado = x.executa()
-            print(f'{estado.custo:7.3f}, {estado.solucao}')
-            melhores_estados.append(estado)
-
-        # Ordena as soluções pelo custo em ordem crescente
-        
-        melhor_estado = sorted(melhores_estados, key=lambda x: x.custo)[0]
-
-        print(f'\n \033[32mMelhor solução: {melhor_estado.custo:7.3f}, {melhor_estado.solucao}\033[0m')
-        print('-' * 100)
 
 def main():
     # Simula a criação de N cidades
@@ -34,13 +16,16 @@ def main():
     print('')
     algoritmos = {
         Hill_Climbing(tsp, solucao_inicial),
-        Hill_Climbing_Restart(tsp, solucao_inicial, 15), 
+        Hill_Climbing_Restart(tsp, solucao_inicial, 500), 
         Simulating_Anneling(tsp, solucao_inicial, temperatura=10, taxa_resfriamento=0.995),
         Genetic_Algorithm(tsp, solucao_inicial, max_iteracoes=500, taxa_mutacao=0.20, tamanho_populacao=15),
         Forca_Bruta(tsp)
     }
-    executa_algoritmos(algoritmos, 10)
 
+    df_custo, estatisticas = executa_n_vezes(algoritmos, 10)
+    print('### Estatisticas ###')
+    print(estatisticas)
+    boxplot_sorted(df_custo, rot=90, figsize=(8,6), fontsize=12)
     
 if __name__ == '__main__':
     main()

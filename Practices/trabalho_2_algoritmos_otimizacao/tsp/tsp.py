@@ -174,7 +174,49 @@ def plota_rotas(df_cidades, ordem_cidades):
     fig.show()
 
 
-def boxplot_sorted(df, rot=90, figsize=(12,6), fontsize=20):
+### EXIBICAO ### --> baseado nos metodos fornecidos pelo professor no colab
+
+# Cria DataFrame para armazenar os resultados dos custos
+def cria_df_custos(algoritmos, n_vezes):
+    nomes_algoritmos = [algoritmo.__class__.__name__ for algoritmo in algoritmos]
+    df_results = pd.DataFrame(index=nomes_algoritmos, columns=range(n_vezes))
+    df_results.index.name = 'ALGORITMO'
+    return df_results
+
+# Executa os algoritmos N vezes e registra os custos
+def executa_n_vezes(algoritmos, n_vezes):
+    df_custo = cria_df_custos(algoritmos, n_vezes)
+    estatisticas = pd.DataFrame(index=['min', 'max', '50%', 'std'], columns=[algoritmo.__class__.__name__ for algoritmo in algoritmos])
+
+    for algoritmo in algoritmos:
+        melhores_estados = []
+        for i in range(n_vezes):
+            nome = algoritmo.__class__.__name__
+            print(f'### Executando algoritmo {nome} ###\n')
+            estado = algoritmo.executa()
+            melhores_estados.append(estado)
+            print(f'{estado.custo:7.3f}, {estado.solucao}')
+
+            # atualiza data frame
+            df_custo.loc[nome, i] = estado.custo
+
+        # Ordena as soluções pelo custo em ordem crescente
+        melhor_estado = sorted(melhores_estados, key=lambda x: x.custo)[0]
+
+        print(f'\n \033[32mMelhor solução: {melhor_estado.custo:7.3f}, {melhor_estado.solucao}\033[0m')
+        print('-' * 100)
+
+        # Cálculo das estatísticas
+        estatisticas.loc['min', nome] = df_custo.loc[nome].min()
+        estatisticas.loc['max', nome] = df_custo.loc[nome].max()
+        estatisticas.loc['50%', nome] = df_custo.loc[nome].median()
+        estatisticas.loc['std', nome] = df_custo.loc[nome].std()
+
+
+    df_custo = df_custo.astype(float), estatisticas
+    return df_custo
+
+def boxplot_sorted(df, rot=90, figsize=(10,6), fontsize=10):
     df2 = df.T
     meds = df2.median().sort_values(ascending=False)
     axes = df2[meds.index].boxplot(figsize=figsize, rot=rot, fontsize=fontsize,
@@ -187,3 +229,5 @@ def boxplot_sorted(df, rot=90, figsize=(12,6), fontsize=20):
                                    return_type="axes")
 
     axes.set_title("Cost of Algorithms", fontsize=fontsize)
+    plt.tight_layout()
+    plt.show()
