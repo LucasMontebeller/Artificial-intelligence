@@ -112,10 +112,11 @@ class Hill_Climbing_Restart(Algoritmo):
 
 class Simulating_Anneling(Algoritmo):
 
-    def __init__(self, solucao_inicial, temperatura, taxa_resfriamento):
+    def __init__(self, solucao_inicial, temperatura, taxa_resfriamento, max_iteracoes=1000):
         self.solucao_inicial = solucao_inicial
         self.temperatura = temperatura
         self.taxa_resfriamento = taxa_resfriamento
+        self.max_iteracoes = max_iteracoes
         self.passos = []
         self.melhor_custo = []
 
@@ -131,7 +132,8 @@ class Simulating_Anneling(Algoritmo):
         # limpa as informações da classe
         passos = 0
         self.limpa_dados()
-        while temperatura > 0.1:
+        # while temperatura > 0.1:
+        for _ in range(self.max_iteracoes):
             # Dados para gerar o gráfico da evolução da função objetivo
             self.passos.append(passos)
             self.melhor_custo.append(melhor_estado.custo)
@@ -144,11 +146,14 @@ class Simulating_Anneling(Algoritmo):
             # redução de energia, implicando que a nova solução é melhor que a anterior
             if delta_e < 0:
                 estado = estado_vizinho
-                melhor_estado = estado
 
             # aumento de energia, aceita novos vizinhos com probabilidade ~ T
             elif self.aceita_vizinho(delta_e, temperatura):
                 estado = estado_vizinho
+
+            # atualiza o melhor estado
+            if estado.custo < melhor_estado.custo:
+                melhor_estado = estado
                 
             # atualiza temperatura
             temperatura*=self.taxa_resfriamento
@@ -188,43 +193,43 @@ class Genetic_Algorithm():
         
         return estado
 
-    def selecao(self, e1: Estado, e2: Estado):
-        return e1 if e1.custo < e2.custo else e2
+    # torneio --> retorna os melhores ou aleatórios n_individuos
+    def selecao(self, populacao: set(), n_individuos: int, aleatorio=False):
+        if aleatorio:
+            return np.random.choice(list(populacao), n_individuos, replace=False)
+        return sorted(populacao, key=lambda x: x.custo)[:n_individuos]
+
 
     def executa(self):
         # população inicial
         estado_inicial = self.solucao_inicial
         populacao = set(estado_inicial.gera_vizinho_aleatorio() for _ in range(self.tamanho_populacao))
-        populacao_sucessora = set()
+
+        # limpa dados
         passos=0
-        for _ in range(self.max_iteracoes):
+        self.limpa_dados()
+        for _ in range(self.tamanho_populacao * self.max_iteracoes):
+            melhor_estado = self.selecao(populacao, 1)[0]
+
+            # Dados para gerar o gráfico da evolução da função objetivo
+            self.passos.append(passos)
+            self.melhor_custo.append(melhor_estado.custo)
+            
             # Valida se o melhor estado encontrado está dentro do possível erro estipulado
-            melhor_estado = sorted(populacao, key=lambda x: x.custo)[0]
             if self.erro is not None and (-self.erro <= melhor_estado.custo <= self.erro):
                 break
 
-            for p in populacao:
-                # gera dois vizinhos aleatórios
-                estado_vizinho_1 = p.gera_vizinho_aleatorio()
-                estado_vizinho_2 = p.gera_vizinho_aleatorio()
+            # selecao
+            primeiro_parente, segundo_parente = self.selecao(populacao, 2, aleatorio=False)
 
-                # crossover
-                filho_1 = self.reproduz(e1=p, e2=estado_vizinho_1)
-                filho_2 = self.reproduz(e1=p, e2=estado_vizinho_2)
+            # crossover
+            filho = self.reproduz(e1=primeiro_parente, e2=segundo_parente)
 
-                # selecao (torneio)
-                filho = self.selecao(filho_1, filho_2)
+            # mutacao
+            filho = self.mutacao(filho)
 
-                # mutacao
-                filho = self.mutacao(filho)
-
-                populacao_sucessora.add(filho)
-
-                passos+=1
-
-
-            populacao = populacao_sucessora.copy()
-            populacao_sucessora.clear()
+            populacao.add(filho)
+            passos+=1
 
         return melhor_estado, self.coleta_dados()
     

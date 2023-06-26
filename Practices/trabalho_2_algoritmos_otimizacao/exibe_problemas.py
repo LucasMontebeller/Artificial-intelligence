@@ -83,6 +83,6 @@ def plota_graficos(dados: dict):
 
     plt.title('Evolução da Função Objetivo')
     plt.xlabel('Passos (escala logaritmica)')
-    plt.ylabel('Custo')
+    plt.ylabel('Melhor Custo')
     plt.xscale('log')
     plt.show()

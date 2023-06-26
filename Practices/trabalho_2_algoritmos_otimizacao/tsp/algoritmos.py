@@ -166,11 +166,14 @@ class Simulating_Anneling(Algoritmo):
             # redução de energia, implicando que a nova solução é melhor que a anterior
             if delta_e < 0:
                 estado = estado_vizinho
-                melhor_estado = estado
 
             # aumento de energia, aceita novos vizinhos com probabilidade ~ T
             elif self.aceita_vizinho(delta_e, temperatura):
                 estado = estado_vizinho
+
+            # atualiza o melhor estado
+            if estado.custo < melhor_estado.custo:
+                melhor_estado = estado
                 
             # atualiza temperatura
             temperatura*=self.taxa_resfriamento
@@ -246,7 +249,58 @@ class Genetic_Algorithm(Algoritmo):
 
         return estado
     
+    # torneio --> retorna os melhores ou aleatórios n_individuos
+    def selecao(self, populacao: set(), n_individuos: int, aleatorio=False):
+        if aleatorio:
+            return np.random.choice(list(populacao), n_individuos, replace=False)
+        return sorted(populacao, key=lambda x: x.custo)[:n_individuos]
+    
+    def executa(self):
+        # população inicial
+        estado_inicial = Estado(self.tsp, self.solucao_inicial)
+        populacao = set(estado_inicial.gera_vizinho_aleatorio() for _ in range(self.tamanho_populacao))
 
+        # limpa as informações da classe
+        passos = 0
+        self.limpa_dados()
+        for _ in range(self.max_iteracoes):
+            melhor_estado = self.selecao(populacao, 1)[0]
+            
+            # Dados para gerar o gráfico da evolução da função objetivo
+            self.passos.append(passos)
+            self.melhor_custo.append(melhor_estado.custo)
+            
+            # selecao
+            primeiro_parente, segundo_parente = self.selecao(populacao, 2, aleatorio=False)
+
+            # crossover (gera dois filhos)
+            estado_filho_1, estado_filho_2 = self.cross_over_ox(primeiro_parente, segundo_parente)
+
+            # mutacao
+            estado_filho_1 = self.mutacao(estado_filho_1)
+            estado_filho_2 = self.mutacao(estado_filho_2)
+
+            # adiciona na próxima lista de herdeiros
+            populacao.add(estado_filho_1)
+            populacao.add(estado_filho_2)
+
+            passos+=1
+
+        return melhor_estado, self.coleta_dados()
+
+    def coleta_dados(self):
+        return self.passos, self.melhor_custo
+    
+    def limpa_dados(self):
+        self.passos.clear()
+        self.melhor_custo.clear()
+
+class Genetic_Algorithm_Elitismo(Genetic_Algorithm):
+
+    def __init__(self, tsp, solucao_inicial, max_iteracoes=50, taxa_mutacao=0.15, tamanho_populacao=15):
+        super().__init__(tsp, solucao_inicial, max_iteracoes, taxa_mutacao, tamanho_populacao)
+
+    # metodo alterntivo para execução com elitismo
     def executa(self):
         
         # população inicial
@@ -288,12 +342,6 @@ class Genetic_Algorithm(Algoritmo):
 
         return melhor_estado, self.coleta_dados()
     
-    def coleta_dados(self):
-        return self.passos, self.melhor_custo
-    
-    def limpa_dados(self):
-        self.passos.clear()
-        self.melhor_custo.clear()
     
 
 class Forca_Bruta(Algoritmo):

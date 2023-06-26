@@ -6,7 +6,7 @@ diretorio_pai = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(diretorio_pai)
 
 from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas
-from algoritmos import Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm, Forca_Bruta
+from algoritmos import Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm, Genetic_Algorithm_Elitismo, Forca_Bruta
 from exibe_problemas import boxplot_sorted, executa_n_vezes, plota_graficos
 
 def main():
@@ -27,6 +27,7 @@ def main():
         Hill_Climbing_Restart(tsp, solucao_inicial, 500), 
         Simulating_Anneling(tsp, solucao_inicial, temperatura=10, taxa_resfriamento=0.995),
         Genetic_Algorithm(tsp, solucao_inicial, max_iteracoes=500, taxa_mutacao=0.20, tamanho_populacao=15),
+        Genetic_Algorithm_Elitismo(tsp, solucao_inicial, max_iteracoes=500, taxa_mutacao=0.20, tamanho_populacao=15),
         Forca_Bruta(tsp)
     }
 

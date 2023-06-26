@@ -17,9 +17,9 @@ def main():
     print('')
     algoritmos = {
         Hill_Climbing(solucao_inicial),
-        Hill_Climbing_Restart(solucao_inicial, 500),
+        Hill_Climbing_Restart(solucao_inicial, 1000),
         Simulating_Anneling(solucao_inicial, temperatura=10, taxa_resfriamento=0.995),
-        Genetic_Algorithm(solucao_inicial, max_iteracoes=500, taxa_mutacao=0.30, tamanho_populacao=20),
+        Genetic_Algorithm(solucao_inicial, max_iteracoes=50, taxa_mutacao=0.30, tamanho_populacao=20),
         # Forca_Bruta(tsp)
     }
 
