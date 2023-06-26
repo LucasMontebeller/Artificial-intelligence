@@ -5,7 +5,7 @@ import os
 diretorio_pai = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(diretorio_pai)
 
-from algoritmos import Estado, Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm
+from algoritmos import Estado, Hill_Climbing, Hill_Climbing_Restart, Simulated_Annealing, Genetic_Algorithm
 from exibe_problemas import boxplot_sorted, executa_n_vezes, plota_graficos
 
 def main():
@@ -18,7 +18,7 @@ def main():
     algoritmos = {
         Hill_Climbing(solucao_inicial),
         Hill_Climbing_Restart(solucao_inicial, 1000),
-        Simulating_Anneling(solucao_inicial, temperatura=10, taxa_resfriamento=0.995),
+        Simulated_Annealing(solucao_inicial, temperatura=100, taxa_resfriamento=0.995),
         Genetic_Algorithm(solucao_inicial, max_iteracoes=50, taxa_mutacao=0.30, tamanho_populacao=20),
         # Forca_Bruta(tsp)
     }

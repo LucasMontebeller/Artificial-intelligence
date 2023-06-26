@@ -131,7 +131,7 @@ class Hill_Climbing_Restart(Algoritmo):
         self.melhor_custo.clear()
         
 
-class Simulating_Anneling(Algoritmo):
+class Simulated_Annealing(Algoritmo):
 
     def __init__(self, tsp, solucao_inicial, temperatura, taxa_resfriamento):
         super().__init__(tsp)
