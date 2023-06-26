@@ -266,7 +266,7 @@ class Genetic_Algorithm(Algoritmo):
                 self.passos.append(passos)
                 self.melhor_custo.append(melhor_estado.custo)
                 
-                # selecao
+                # geração de vizinho
                 estado_vizinho = estado.gera_vizinho_aleatorio()
 
                 # crossover (gera dois filhos)
@@ -281,6 +281,7 @@ class Genetic_Algorithm(Algoritmo):
 
                 passos+=1
 
+            # seleção por truncamento
             # limpa as soluções herdeiras para reiniciar o ciclo de busca, preservando os melhores indivíduos até o momento (elitismo)
             populacao = sorted(set(populacao_sucessora.copy()), key=lambda x: x.custo) [:self.tamanho_populacao]
             populacao_sucessora.clear()

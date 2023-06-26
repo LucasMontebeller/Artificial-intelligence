@@ -1,5 +1,13 @@
-from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas, boxplot_sorted, executa_n_vezes, plota_graficos
+import sys
+import os
+
+# Necessário para importar corretamente o arquivo exibe_problemas
+diretorio_pai = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(diretorio_pai)
+
+from tsp import gera_coordenadas_aleatorias, gera_problema_tsp, plota_rotas
 from algoritmos import Hill_Climbing, Hill_Climbing_Restart, Simulating_Anneling, Genetic_Algorithm, Forca_Bruta
+from exibe_problemas import boxplot_sorted, executa_n_vezes, plota_graficos
 
 def main():
     # Simula a criação de N cidades
