@@ -1,4 +1,7 @@
-# ref : https://pt.wikipedia.org/wiki/M%C3%A9todo_dos_m%C3%ADnimos_quadrados
+''' refs:
+https://pt.wikipedia.org/wiki/M%C3%A9todo_dos_m%C3%ADnimos_quadrados
+http://cursos.leg.ufpr.br/ML4all/apoio/Gradiente.html
+'''
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -71,7 +74,12 @@ class MultipleLinearRegression():
         ones_column = np.ones((X.shape[0], 1))
         return np.hstack((ones_column, X))
         
-    
+
+# Alternativa caso a matriz não seja inversível ou sua inversa seja complexa de calcular. 
+class GradientDescent():
+    pass
+
+
     
 def mse(y: np.ndarray, ypred: np.ndarray):
     if y.shape != ypred.shape:
